@@ -29,7 +29,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 12px;
+            padding: 10px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -38,9 +38,9 @@
         }
 
         /* Ajuste para evitar descuadres en modo fullscreen nativo */
-        :-webkit-full-screen { background-color: var(--bg-color); width: 100%; height: 100%; padding: 12px; box-sizing: border-box; }
-        :-ms-fullscreen { background-color: var(--bg-color); width: 100%; height: 100%; padding: 12px; box-sizing: border-box; }
-        :fullscreen { background-color: var(--bg-color); width: 100%; height: 100%; padding: 12px; box-sizing: border-box; }
+        :-webkit-full-screen { background-color: var(--bg-color); width: 100%; height: 100%; padding: 10px; box-sizing: border-box; }
+        :-ms-fullscreen { background-color: var(--bg-color); width: 100%; height: 100%; padding: 10px; box-sizing: border-box; }
+        :fullscreen { background-color: var(--bg-color); width: 100%; height: 100%; padding: 10px; box-sizing: border-box; }
 
         .panel {
             background: var(--card-bg);
@@ -48,20 +48,6 @@
             padding: 15px;
             margin-bottom: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .panel-title {
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #f3f4f6;
-            padding-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         /* Pantalla de inicio obligatoria */
@@ -168,12 +154,12 @@
         @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
         /* Cajas de logs */
-        .logs-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px; max-height: 80px; overflow-y: auto; font-family: monospace; font-size: 0.9rem; }
+        .logs-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px; max-height: 80px; overflow-y: auto; font-family: monospace; font-size: 0.9rem; margin-top: 10px; }
 
         /* Botones de acción */
         .btn-emergency { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; border: none; border-radius: 18px; color: white; font-weight: 900; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.1s; }
         .btn-emergency:active { transform: scale(0.98); }
-        .btn-desa { background-color: var(--orange); padding: 16px; font-size: 1.2rem; margin-bottom: 12px; }
+        .btn-desa { background-color: var(--orange); padding: 16px; font-size: 1.2rem; }
         .btn-112 { background-color: var(--red); padding: 20px; font-size: 1.5rem; text-decoration: none; box-sizing: border-box; }
     </style>
 </head>
@@ -196,7 +182,6 @@
     </div>
 
     <div class="panel">
-        <div class="panel-title">Módulo de Compresiones</div>
         <div class="time-header">
             <div id="lblInicio">Inicio: --:--:--</div>
             <div id="lblTranscurrido" style="color: var(--red); font-family: monospace; font-weight: bold;">Tiempo: 00:00</div>
@@ -217,7 +202,6 @@
     </div>
 
     <div class="panel">
-        <div class="panel-title">Módulo de Insuflaciones</div>
         <div class="toggle-container">
             <span>MODO INSUFLACIONES</span>
             <input type="checkbox" id="chkInsuflaciones" checked style="width: 22px; height: 22px; cursor: pointer;">
@@ -233,19 +217,17 @@
     </div>
 
     <div class="panel" style="padding: 12px;">
-        <div class="panel-title">Histórico de Eventos DESA</div>
+        <button class="btn-emergency btn-desa" onclick="registrarDescargaDesa()">
+            <span style="font-size: 1.6rem;">❤️⚡</span> DESCARGA DESA
+        </button>
         <div class="logs-box" id="boxHistorial">
             <div style="color: #9ca3af; text-align: center; font-style: italic; padding-top: 5px;">Ninguna descarga registrada</div>
         </div>
     </div>
 
-    <button class="btn-emergency btn-desa" onclick="registrarDescargaDesa()">
-        <span style="font-size: 1.6rem;">❤️⚡</span> DESCARGA DESA
-    </button>
-
     <div style="width: 100%;">
         <a href="tel:112" class="btn-emergency btn-112" onclick="reproducirVoz('Llamando')">
-            <span style="font-size: 2rem;">☎️ 🚑</span> LLAMAR 112
+            <span style="font-size: 2rem;">☎️  Ambulancia 🚑</span> LLAMAR 112
         </a>
         <div style="text-align: center; color: #dc2626; font-size: 0.75rem; font-weight: 800; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">
             ⚠️ Al pulsar: Confirma la llamada y activa el ALTAVOZ en tu móvil
@@ -265,7 +247,6 @@
         let limiteCompresiones = 30;
         let ultimoCambioSegundos = 0; 
 
-        // Registro del Service Worker para soporte PWA Offline
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').catch(err => console.log("SW error:", err));
@@ -288,16 +269,15 @@
             }
         }
 
-        // Lógica de pantalla completa por API (Garantiza ocultar barras en navegadores móviles)
         function activarPantallaCompleta() {
             const docEl = document.documentElement;
             if (docEl.requestFullscreen) {
                 docEl.requestFullscreen().catch(err => console.log(err));
-            } else if (docEl.webkitRequestFullscreen) { /* Safari / iOS */
+            } else if (docEl.webkitRequestFullscreen) { 
                 docEl.webkitRequestFullscreen();
-            } else if (docEl.mozRequestFullScreen) { /* Firefox */
+            } else if (docEl.mozRequestFullScreen) { 
                 docEl.mozRequestFullScreen();
-            } else if (docEl.msRequestFullscreen) { /* IE/Edge */
+            } else if (docEl.msRequestFullscreen) { 
                 docEl.msRequestFullscreen();
             }
         }
@@ -316,8 +296,24 @@
             }
         }
 
+        document.getElementById('sliderFrecuencia').oninput = (e) => {
+            frecuencia = parseInt(e.target.value);
+            document.getElementById('txtFreqVal').innerText = frecuencia;
+            if (!enPausaInsuflacion && horaInicio) bucleMetronomo();
+        };
+
+        document.getElementById('sliderPausa').oninput = (e) => {
+            tiempoPausaInsuflacion = parseInt(e.target.value);
+            document.getElementById('txtPausaVal').innerText = tiempoPausaInsuflacion;
+        };
+
+        document.getElementById('chkInsuflaciones').onchange = (e) => {
+            const wrapper = document.getElementById('wrapperInsuflacionTiempo');
+            wrapper.style.opacity = e.target.checked ? "1" : "0.3";
+            document.getElementById('sliderPausa').disabled = !e.target.checked;
+        };
+
         function arrancarAsistente() {
-            // Forzar la ejecución del modo pantalla completa al interactuar
             activarPantallaCompleta();
 
             document.getElementById('overlay').style.opacity = '0';
@@ -418,23 +414,6 @@
                 bucleMetronomo();
             }, tiempoPausaInsuflacion * 1000);
         }
-
-        document.getElementById('sliderFrecuencia').oninput = (e) => {
-            frecuencia = parseInt(e.target.value);
-            document.getElementById('txtFreqVal').innerText = frecuencia;
-            if (!enPausaInsuflacion && horaInicio) bucleMetronomo();
-        };
-
-        document.getElementById('sliderPausa').oninput = (e) => {
-            tiempoPausaInsuflacion = parseInt(e.target.value);
-            document.getElementById('txtPausaVal').innerText = tiempoPausaInsuflacion;
-        };
-
-        document.getElementById('chkInsuflaciones').onchange = (e) => {
-            const wrapper = document.getElementById('wrapperInsuflacionTiempo');
-            wrapper.style.opacity = e.target.checked ? "1" : "0.3";
-            document.getElementById('sliderPausa').disabled = !e.target.checked;
-        };
 
         function registrarDescargaDesa() {
             if (!horaInicio) return;
