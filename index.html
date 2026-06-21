@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Asistente RCP Avanzado Profesional</title>
     
-    <!-- Vinculación con el manifiesto PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ef4444">
     
-    <!-- Soporte avanzado de pantalla completa para iOS (Safari) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="RCP Pro">
@@ -167,18 +165,15 @@
 </head>
 <body>
 
-    <!-- Capa de Activación -->
     <div id="overlay">
         <button class="start-btn" onclick="arrancarAsistente()">INICIAR RCP</button>
     </div>
 
-    <!-- BANNER DE ALERTA INTERACTIVO -->
     <div id="bannerCambio" class="alert-banner" style="display: none;">
         <div class="alert-title">⚠️ ¡CAMBIE DE REANIMADOR DE INMEDIATO! ⚠️</div>
         <button class="alert-confirm-btn" onclick="confirmarCambioReanimador()">✅ HE CAMBIADO</button>
     </div>
 
-    <!-- SECCIÓN DEL PACIENTE -->
     <div class="panel" style="padding: 12px;">
         <div class="patient-selector">
             <button id="btnModoAdulto" class="patient-btn active-adult" onclick="cambiarModoPaciente(false)">🧑 Adulto (30:2)</button>
@@ -186,7 +181,6 @@
         </div>
     </div>
 
-    <!-- PANEL DE CUENTA -->
     <div class="panel">
         <div class="time-header">
             <div id="lblInicio">Inicio: --:--:--</div>
@@ -207,7 +201,6 @@
         </div>
     </div>
 
-    <!-- PANEL DE VENTILACIÓN -->
     <div class="panel">
         <div class="toggle-container">
             <span>MODO INSUFLACIONES</span>
@@ -223,7 +216,6 @@
         </div>
     </div>
 
-    <!-- PANEL DESA REORDENADO (Botón arriba, historial abajo) -->
     <div class="panel" style="padding: 12px;">
         <button class="btn-emergency btn-desa" onclick="registrarDescargaDesa()">
             <span style="font-size: 1.6rem;">❤️⚡</span> DESCARGA DESA
@@ -233,10 +225,9 @@
         </div>
     </div>
 
-    <!-- SECCIÓN INFERIOR: LLAMADA DIRECTA -->
     <div style="width: 100%;">
         <a href="tel:112" class="btn-emergency btn-112" onclick="reproducirVoz('Llamando')">
-            <span style="font-size: 2rem;">☎️  Ambulancia 🚑</span> LLAMAR 112
+            <span style="font-size: 2rem;">☎️ 🚑</span> LLAMAR 112
         </a>
         <div style="text-align: center; color: #dc2626; font-size: 0.75rem; font-weight: 800; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">
             ⚠️ Al pulsar: Confirma la llamada y activa el ALTAVOZ en tu móvil
@@ -409,7 +400,7 @@
             clearInterval(rcpLoop);
             enPausaInsuflacion = true;
             
-            document.getElementById('txtEstado').innerText = "¡INSUFLACIÓN!";
+            document.getElementById('txtEstado').innerText = "¡2 INSUFLACIONES!";
             document.getElementById('txtEstado').style.color = "var(--blue)";
             document.getElementById('txtContador').innerText = modoPediatrico ? "15" : "30";
             
