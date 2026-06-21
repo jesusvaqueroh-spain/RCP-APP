@@ -2,10 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Asistente RCP Avanzado Profesional</title>
+    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ef4444">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RCP Pro">
+
     <style>
         :root {
             --bg-color: #f3f4f6; /* Gris claro de fondo */
@@ -23,7 +29,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 15px;
+            padding: 12px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -31,11 +37,16 @@
             user-select: none;
         }
 
+        /* Ajuste para evitar descuadres en modo fullscreen nativo */
+        :-webkit-full-screen { background-color: var(--bg-color); width: 100%; height: 100%; padding: 12px; box-sizing: border-box; }
+        :-ms-fullscreen { background-color: var(--bg-color); width: 100%; height: 100%; padding: 12px; box-sizing: border-box; }
+        :fullscreen { background-color: var(--bg-color); width: 100%; height: 100%; padding: 12px; box-sizing: border-box; }
+
         .panel {
             background: var(--card-bg);
             border-radius: 20px;
             padding: 15px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
@@ -88,16 +99,6 @@
             color: #4b5563;
             margin-bottom: 10px;
         }
-
-        .canvas-container {
-            width: 100%;
-            height: 85px;
-            background: #0f172a;
-            border-radius: 14px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-        canvas { width: 100%; height: 100%; display: block; }
 
         .counter-box { text-align: center; padding: 5px 0; }
         .counter-number { font-size: 7.5rem; font-weight: 900; line-height: 1; color: var(--text-color); }
@@ -166,9 +167,8 @@
 
         @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-        /* Cajas de logs e información GPS */
+        /* Cajas de logs */
         .logs-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px; max-height: 80px; overflow-y: auto; font-family: monospace; font-size: 0.9rem; }
-        .gps-text { font-family: monospace; font-size: 0.85rem; font-weight: 700; color: var(--blue); text-align: center; }
 
         /* Botones de acción */
         .btn-emergency { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; border: none; border-radius: 18px; color: white; font-weight: 900; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: transform 0.1s; }
@@ -202,10 +202,6 @@
             <div id="lblTranscurrido" style="color: var(--red); font-family: monospace; font-weight: bold;">Tiempo: 00:00</div>
         </div>
 
-        <div class="canvas-container">
-            <canvas id="ecgCanvas"></canvas>
-        </div>
-
         <div class="counter-box">
             <div class="counter-number" id="txtContador">1</div>
             <div class="status-label" id="txtEstado">Compresiones</div>
@@ -237,11 +233,6 @@
     </div>
 
     <div class="panel" style="padding: 12px;">
-        <div class="panel-title">Ubicación Actual para comunicar al 112</div>
-        <div id="txtGPS" class="gps-text">🛰️ Buscando coordenadas satelitales GPS...</div>
-    </div>
-
-    <div class="panel" style="padding: 12px;">
         <div class="panel-title">Histórico de Eventos DESA</div>
         <div class="logs-box" id="boxHistorial">
             <div style="color: #9ca3af; text-align: center; font-style: italic; padding-top: 5px;">Ninguna descarga registrada</div>
@@ -263,7 +254,7 @@
 
     <script>
         let cuenta = 1;
-        let frecuencia = 110;
+        let frecuencia = 110; 
         let tiempoPausaInsuflacion = 5; 
         let rcpLoop;
         let audioCtx;
@@ -273,17 +264,6 @@
         let modoPediatrico = false;
         let limiteCompresiones = 30;
         let ultimoCambioSegundos = 0; 
-
-        const canvas = document.getElementById('ecgCanvas');
-        const ctx = canvas.getContext('2d');
-        let t = 0;
-
-        function ajustarCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-        }
-        window.addEventListener('resize', ajustarCanvas);
-        ajustarCanvas();
 
         // Registro del Service Worker para soporte PWA Offline
         if ('serviceWorker' in navigator) {
@@ -308,6 +288,20 @@
             }
         }
 
+        // Lógica de pantalla completa por API (Garantiza ocultar barras en navegadores móviles)
+        function activarPantallaCompleta() {
+            const docEl = document.documentElement;
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen().catch(err => console.log(err));
+            } else if (docEl.webkitRequestFullscreen) { /* Safari / iOS */
+                docEl.webkitRequestFullscreen();
+            } else if (docEl.mozRequestFullScreen) { /* Firefox */
+                docEl.mozRequestFullScreen();
+            } else if (docEl.msRequestFullscreen) { /* IE/Edge */
+                docEl.msRequestFullscreen();
+            }
+        }
+
         function cambiarModoPaciente(isPediatrico) {
             modoPediatrico = isPediatrico;
             limiteCompresiones = modoPediatrico ? 15 : 30;
@@ -323,9 +317,11 @@
         }
 
         function arrancarAsistente() {
+            // Forzar la ejecución del modo pantalla completa al interactuar
+            activarPantallaCompleta();
+
             document.getElementById('overlay').style.opacity = '0';
             setTimeout(() => document.getElementById('overlay').style.display = 'none', 200);
-            ajustarCanvas();
 
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             horaInicio = new Date();
@@ -333,14 +329,6 @@
 
             reproducirVoz("Iniciando R C P. Coloque el manos libres y prepare el desfibrilador.");
             vibrarDispositivo([100, 50, 100]);
-
-            if ('geolocation' in navigator) {
-                navigator.geolocation.watchPosition((pos) => {
-                    document.getElementById('txtGPS').innerHTML = `📍 Lat: <b>${pos.coords.latitude.toFixed(5)}</b> | Lon: <b>${pos.coords.longitude.toFixed(5)}</b> <br> <span style="font-size:0.75rem; color:#6b7280;">(Margen error: ±${Math.round(pos.coords.accuracy)} metros)</span>`;
-                }, () => {
-                    document.getElementById('txtGPS').innerText = "❌ Active el GPS para ver sus coordenadas.";
-                }, { enableHighAccuracy: true });
-            }
 
             setInterval(() => {
                 const segundosDiff = Math.floor((new Date() - horaInicio) / 1000);
@@ -360,7 +348,6 @@
             }, 1000);
 
             bucleMetronomo();
-            loopEcg();
         }
 
         function confirmarCambioReanimador() {
@@ -368,6 +355,14 @@
             const segundosDiff = Math.floor((new Date() - horaInicio) / 1000);
             ultimoCambioSegundos = segundosDiff; 
             document.getElementById('bannerCambio').style.display = 'none';
+            
+            cuenta = 1;
+            document.getElementById('txtContador').innerText = cuenta;
+            enPausaInsuflacion = false;
+            document.getElementById('txtEstado').innerText = "Compresiones";
+            document.getElementById('txtEstado').style.color = "var(--orange)";
+            bucleMetronomo(); 
+            
             reproducirVoz("Cambio registrado.");
             vibrarDispositivo([100, 50, 100]);
         }
@@ -456,38 +451,6 @@
                 <span style="color: var(--orange);">⚡ DESCARGA #${contadorDesas}</span>
                 <span>${stamp}</span>
             </div>` + cajaHistorial.innerHTML;
-        }
-
-        function obtenerVoltajeEcg(p) {
-            if (enPausaInsuflacion) return 0;
-            if (p < 0.08) return 0.12 * Math.sin((p / 0.08) * Math.PI); 
-            if (p >= 0.10 && p < 0.13) return -0.15 * Math.sin(((p - 0.10) / 0.03) * Math.PI); 
-            if (p >= 0.13 && p < 0.17) return 1.0 * Math.sin(((p - 0.13) / 0.04) * Math.PI);  
-            if (p >= 0.17 && p < 0.20) return -0.25 * Math.sin(((p - 0.17) / 0.03) * Math.PI); 
-            if (p >= 0.28 && p < 0.45) return 0.25 * Math.sin(((p - 0.28) / 0.17) * Math.PI); 
-            return 0;
-        }
-
-        function loopEcg() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = '#06b6d4'; 
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-
-            let velocidad = (frecuencia / 60) * 0.005;
-            t += velocidad;
-
-            for (let x = 0; x < canvas.width; x++) {
-                let tiempoProporcional = (x * 0.004) - t;
-                let fase = tiempoProporcional - Math.floor(tiempoProporcional);
-                let volt = obtenerVoltajeEcg(fase);
-                let y = (canvas.height / 2) - (volt * (canvas.height * 0.35));
-                
-                if (x === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-            requestAnimationFrame(loopEcg);
         }
     </script>
 </body>
